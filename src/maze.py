@@ -37,6 +37,7 @@ class Maze:
         graph = mazegraph.MazeGraph(settings.nrows, settings.ncols)
 
         # TODO: Create the graph
+        self._make_debug_graph(graph)
 
         return graph
 
@@ -46,3 +47,17 @@ class Maze:
         """
         display.draw_maze(self._screen, self._maze, self._settings)
         pygame.display.flip()
+
+    def _make_debug_graph(self, graph: mazegraph.MazeGraph):
+        """
+        Adjust all the nodes in the given graph so that we have a simple path from
+        start to finish.
+        """
+        start = graph.get_node(int(self._settings.ncols * 0.5), 0)
+        start.is_start = True
+        start.has_player = True
+        start.is_wall = False
+
+        end = graph.get_node(0, int(self._settings.nrows * 0.5))
+        end.is_finish = True
+        end.is_wall = False

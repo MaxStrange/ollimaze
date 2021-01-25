@@ -22,6 +22,9 @@ class MazeCell:
         self.x = x
         self.y = y
         self.is_wall = wall
+        self.is_start = False
+        self.is_finish = False
+        self.has_player = False
         self.up = None
         self.left = None
         self.right = None
@@ -80,3 +83,12 @@ class MazeGraph:
 
             if node.y != nrows - 1:
                 node.down = _get_node(node.x, node.y + 1)
+
+    def get_node(self, x: int, y: int) -> MazeCell:
+        """
+        Get the node from the given location. This is O(n), where n is the number of columns.
+        """
+        node = self._nodes_by_row[y][x]
+        assert node.x == x and node.y == y, f"(node.x, node.y) == ({node.x}, {node.y}), but should be ({x}, {y})"
+
+        return node

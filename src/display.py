@@ -34,4 +34,4 @@ def draw_maze(screen, maze: mazegraph.MazeGraph, settings: setts.Settings):
             elif node.has_player:
                 center_x = (CELL_WIDTH_PIXELS * node.x) + int(0.5 * CELL_WIDTH_PIXELS)
                 center_y = (CELL_HEIGHT_PIXELS * node.y) + int(0.5 * CELL_HEIGHT_PIXELS)
-                pygame.draw.circle(screen, settings.player_color, (center_x, center_y), min(int(CELL_WIDTH_PIXELS * 0.9), int(CELL_HEIGHT_PIXELS * 0.9)))
+                pygame.draw.circle(screen, settings.player_color, (center_x, center_y), min(int(CELL_WIDTH_PIXELS * 0.5), int(CELL_HEIGHT_PIXELS * 0.5)))
