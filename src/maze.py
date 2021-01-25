@@ -3,6 +3,7 @@ A Maze game that returns `True` if the user wants to exit, otherwise returns `Fa
 The main loop should create a new Maze instance and play it again in that case.
 """
 import pygame
+import src.display as display      # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 import src.mazegraph as mazegraph  # pylint: disable=import-error
 
@@ -12,8 +13,9 @@ class Maze:
         """
         A Maze.
         """
-        self.settings = settings
-        self._maze = self._create_new_maze(self.settings)
+        self._settings = settings
+        self._maze = self._create_new_maze(self._settings)
+        self._screen = display.make_screen(self._settings)
 
     def play(self) -> bool:
         """
@@ -21,8 +23,7 @@ class Maze:
 
         Returns True if we want quit, False if we want to play again.
         """
-        # Draw the maze
-        # TODO
+        self._draw()
 
         # Allow the player to control the agent, redrawing only the cells that change, as we go
         while True:
@@ -33,4 +34,15 @@ class Maze:
         Creates a new MazeGraph data structure, with cells which connect
         to one another in a way that is based on the settings.
         """
-        return mazegraph.MazeGraph(settings.nrows, settings.ncols)
+        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols)
+
+        # TODO: Create the graph
+
+        return graph
+
+    def _draw(self):
+        """
+        Draw the maze in full.
+        """
+        display.draw_maze(self._screen, self._maze, self._settings)
+        pygame.display.flip()
