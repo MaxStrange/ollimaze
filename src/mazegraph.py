@@ -10,7 +10,7 @@ class MazeCell:
     """
     A node in the graph, which corresponds to a cell, if you think of the maze as a matrix.
     """
-    def __init__(self, x: int, y: int, wall=True):
+    def __init__(self, x: int, y: int, graph, wall=True):
         """
         Args
         ----
@@ -21,14 +21,42 @@ class MazeCell:
         """
         self.x = x
         self.y = y
+        self.graph = graph
         self.is_wall = wall
-        self.is_start = False
-        self.is_finish = False
-        self.has_player = False
         self.up = None
         self.left = None
         self.right = None
         self.down = None
+        self._has_player = False
+        self._is_start = False
+        self._is_finish = False
+
+    @property
+    def has_player(self):
+        return self._has_player
+
+    @has_player.setter
+    def has_player(self, value: bool):
+        self._has_player = value
+        self.graph._player_node = self
+
+    @property
+    def is_start(self):
+        return self._is_start
+
+    @is_start.setter
+    def is_start(self, value: bool):
+        self._is_start = value
+        self.graph._start_node = self
+
+    @property
+    def is_finish(self):
+        return self._is_finish
+
+    @is_finish.setter
+    def is_finish(self), value: bool:
+        self._is_finish = value
+        self.graph._end_node = self
 
 
 class MazeGraph:
@@ -45,6 +73,11 @@ class MazeGraph:
     methods it provides to make it in whatever way you see fit.
     """
     def __init__(self, nrows: int, ncols: int):
+        # Special nodes that we keep track of
+        self._start_node = None
+        self._end_node = None
+        self._player_node = None
+
         # A list of every node in the graph
         self._nodes = []
 
@@ -92,3 +125,21 @@ class MazeGraph:
         assert node.x == x and node.y == y, f"(node.x, node.y) == ({node.x}, {node.y}), but should be ({x}, {y})"
 
         return node
+
+    def get_player_node(self) -> MazeCell:
+        """
+        Get the node that contains the player.
+        """
+        return self._player_node
+
+    def get_start_node(self) -> MazeCell:
+        """
+        Get the start node.
+        """
+        return self._start_node
+
+    def get_end_node(self) -> MazeCell:
+        """
+        Get the end node.
+        """
+        return self._end_node

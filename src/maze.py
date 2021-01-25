@@ -7,6 +7,16 @@ import src.display as display      # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 import src.mazegraph as mazegraph  # pylint: disable=import-error
 
+from pygame.locals import (  # pylint: disable=no-member,no-name-in-module
+    K_UP,
+    K_DOWN,
+    K_LEFT,
+    K_RIGHT,
+    K_ESCAPE,
+    KEYDOWN,
+    QUIT,
+)
+
 
 class Maze:
     def __init__(self, settings: setts.Settings):
@@ -27,7 +37,50 @@ class Maze:
 
         # Allow the player to control the agent, redrawing only the cells that change, as we go
         while True:
-            pass
+            for event in pygame.event.get():
+                if event.type == KEYDOWN:
+                    done, should_quit = self._handle_keydown_event(event)
+                    if done and should_quit:
+                        return True
+                    elif done:
+                        return False
+                elif event.type == QUIT:
+                    return True
+
+    def _handle_keydown_event(self, event) -> (bool, bool):
+        """
+        Handles the user pushing a button by adjusting state and redrawing
+        the parts that changed.
+
+        Returns:
+        - (True, True) -> User wants to quit
+        - (True, False) -> User has finished this maze
+        - (False, *) -> User is not done yet
+        """
+        wants_to_quit = (True, True)
+        finished_maze = (True, False)
+        still_playing = (False, None)
+
+        if event.key == K_UP:
+            # Move the agent up
+            finished = self._move(K_UP)
+        elif event.key == K_DOWN:
+            # Move the agent down
+            finished = self._move(K_DOWN)
+        elif event.key == K_LEFT:
+            # Move the agent left
+            finished = self._move(K_LEFT)
+        elif event.key == K_RIGHT:
+            # Move the agent right
+            finished = self._move(K_RIGHT)
+        elif event.key == K_ESCAPE:
+            # User wants to quit
+            return *wants_to_quit
+
+        if finished:
+            return *finished_maze
+        else:
+            return *still_playing
 
     def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
         """
@@ -74,3 +127,15 @@ class Maze:
         for r in range(0, middle_row):
             node = graph.get_node(middle_column, r)
             node.is_wall = False
+
+    def _move(self, direction) -> bool:
+        """
+        Moves the agent in the given direction, if possible.
+        Draws the result.
+        Returns True if reached the goal, False otherwise.
+        """
+        current_agent_node = self._maze.get_player_node()
+
+        if direction == K_UP:
+            # TODO:
+            pass
