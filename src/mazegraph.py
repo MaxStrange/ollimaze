@@ -38,7 +38,8 @@ class MazeCell:
     @has_player.setter
     def has_player(self, value: bool):
         self._has_player = value
-        self.graph._player_node = self
+        if value:
+            self.graph._player_node = self
 
     @property
     def is_start(self):
@@ -47,16 +48,18 @@ class MazeCell:
     @is_start.setter
     def is_start(self, value: bool):
         self._is_start = value
-        self.graph._start_node = self
+        if value:
+            self.graph._start_node = self
 
     @property
     def is_finish(self):
         return self._is_finish
 
     @is_finish.setter
-    def is_finish(self), value: bool:
+    def is_finish(self, value: bool):
         self._is_finish = value
-        self.graph._end_node = self
+        if value:
+            self.graph._end_node = self
 
 
 class MazeGraph:
@@ -78,6 +81,10 @@ class MazeGraph:
         self._end_node = None
         self._player_node = None
 
+        # Nrows and ncols
+        self._nrows = nrows
+        self._ncols = ncols
+
         # A list of every node in the graph
         self._nodes = []
 
@@ -90,7 +97,7 @@ class MazeGraph:
         # Go through and create a single node for each cell
         for y in range(0, nrows):
             for x in range(0, ncols):
-                node = MazeCell(x, y)
+                node = MazeCell(x, y, self)
                 self._nodes.append(node)
 
                 self._nodes_by_row[y].append(node)
@@ -143,3 +150,39 @@ class MazeGraph:
         Get the end node.
         """
         return self._end_node
+
+    def get_node_up(self, n: MazeCell) -> MazeCell:
+        """
+        Returns the node that is above `n`, if there is one, otherwise None.
+        """
+        if n.y == 0:
+            return None
+        else:
+            return self.get_node(n.x, n.y - 1)
+
+    def get_node_down(self, n: MazeCell) -> MazeCell:
+        """
+        Returns the node that is below `n`, if there is one, otherwise None.
+        """
+        if n.y == self._nrows - 1:
+            return None
+        else:
+            return self.get_node(n.x, n.y + 1)
+
+    def get_node_left(self, n: MazeCell) -> MazeCell:
+        """
+        Returns the node to the left of `n`, if there is one, otherwise None.
+        """
+        if n.x == 0:
+            return None
+        else:
+            return self.get_node(n.x - 1, n.y)
+
+    def get_node_right(self, n: MazeCell) -> MazeCell:
+        """
+        Returns the node to the right of `n`, if there is one, otherwise None.
+        """
+        if n.x == self._ncols - 1:
+            return None
+        else:
+            return self.get_node(n.x + 1, n.y)

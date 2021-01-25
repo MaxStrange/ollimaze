@@ -75,12 +75,12 @@ class Maze:
             finished = self._move(K_RIGHT)
         elif event.key == K_ESCAPE:
             # User wants to quit
-            return *wants_to_quit
+            return wants_to_quit
 
         if finished:
-            return *finished_maze
+            return finished_maze
         else:
-            return *still_playing
+            return still_playing
 
     def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
         """
@@ -134,8 +134,87 @@ class Maze:
         Draws the result.
         Returns True if reached the goal, False otherwise.
         """
+        if direction == K_UP:
+            return self._move_up()
+        elif direction == K_DOWN:
+            return self._move_down()
+        elif direction == K_LEFT:
+            return self._move_down()
+        elif direction == K_RIGHT:
+            return self._move_down()
+        else:
+            raise ValueError(f"This method is not equipped to handle the given key: {direction}")
+
+    def _move_up(self) -> bool:
+        """
+        Moves the agent up, if possible.
+
+        Returns True if reached the goal, False otherwise.
+        """
         current_agent_node = self._maze.get_player_node()
 
-        if direction == K_UP:
-            # TODO:
-            pass
+        if current_agent_node.y == 0:
+            # Can't go up. Already on the top row
+            return False
+        else:
+            next_node = self._maze.get_node_up(current_agent_node)
+            self._handle_movement(current_agent_node, next_node)
+
+    def _move_down(self) -> bool:
+        """
+        Moves the agent down, if possible.
+
+        Returns True if reached the goal, False otherwise.
+        """
+        current_agent_node = self._maze.get_player_node()
+
+        if current_agent_node.y == self._settings.nrows - 1:
+            # Can't go down. Already on the bottom row.
+            return False
+        else:
+            next_node = self._maze.get_node_down(current_agent_node)
+            self._handle_movement(current_agent_node, next_node)
+
+    def _move_left(self) -> bool:
+        """
+        Moves the agent left, if possible.
+
+        Returns True if reached the goal, False otherwise.
+        """
+        current_agent_node = self._maze.get_player_node()
+
+        if current_agent_node.x == 0:
+            # Can't go left. Already at the left-most row.
+            return False
+        else:
+            next_node = self._maze.get_node_left(current_agent_node)
+            self._handle_movement(current_agent_node, next_node)
+
+    def _move_right(self) -> bool:
+        """
+        Moves the agent to the right, if possible.
+
+        Returns True if reached the goal, False otherwise.
+        """
+        current_agent_node = self._maze.get_player_node()
+
+        if current_agent_node.x == self._settings.ncols - 1:
+            # Can't go right. Already on the right-most column.
+            return False
+        else:
+            next_node = self._maze.get_node_right(current_agent_node)
+            self._handle_movement(current_agent_node, next_node)
+
+    def _handle_movement(self, current_agent_node: mazegraph.MazeCell, next_node: mazegraph.MazeCell) -> bool:
+        """
+        Handles a legal mvoe by checking for collision with wall and returning if reached the end goal.
+        """
+        if next_node.is_wall:
+            # Can't go that way; it's a wall.
+            return False
+        else:
+            current_agent_node.has_player = False
+            next_node.has_player = True
+            # TODO: Only redraw the current_agent_node cell and next_node cell
+            self._draw()
+            return next_node.is_finish
