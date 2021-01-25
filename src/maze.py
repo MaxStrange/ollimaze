@@ -53,11 +53,24 @@ class Maze:
         Adjust all the nodes in the given graph so that we have a simple path from
         start to finish.
         """
-        start = graph.get_node(int(self._settings.ncols * 0.5), 0)
+        middle_column = int(self._settings.ncols * 0.5)
+        middle_row = int(self._settings.nrows * 0.5)
+
+        # Set up the start cell
+        start = graph.get_node(0, middle_row)
         start.is_start = True
         start.has_player = True
         start.is_wall = False
 
-        end = graph.get_node(0, int(self._settings.nrows * 0.5))
+        # Set up the end cell (the goal)
+        end = graph.get_node(middle_column, 0)
         end.is_finish = True
         end.is_wall = False
+
+        for c in range(0, middle_column + 1):
+            node = graph.get_node(c, middle_row)
+            node.is_wall = False
+
+        for r in range(0, middle_row):
+            node = graph.get_node(middle_column, r)
+            node.is_wall = False
