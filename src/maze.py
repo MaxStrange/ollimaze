@@ -26,6 +26,7 @@ class Maze:
         self._settings = settings
         self._maze = self._create_new_maze(self._settings)
         self._screen = display.make_screen(self._settings)
+        self._clock = pygame.time.Clock()
 
     def play(self) -> bool:
         """
@@ -38,16 +39,22 @@ class Maze:
         # Allow the player to control the agent, redrawing only the cells that change, as we go
         while True:
             for event in pygame.event.get():
-                if event.type == KEYDOWN:
-                    done, should_quit = self._handle_keydown_event(event)
+                if event.type == QUIT:
+                    return True
+
+            keys_pressed = pygame.key.get_pressed()
+            for key in [K_DOWN, K_LEFT, K_RIGHT, K_UP, K_ESCAPE]:
+                if keys_pressed[key]:
+                    done, should_quit = self._handle_keydown_event(key)
                     if done and should_quit:
                         return True
                     elif done:
                         return False
-                elif event.type == QUIT:
-                    return True
 
-    def _handle_keydown_event(self, event) -> (bool, bool):
+            # Go at a reasonable FPS
+            self._clock.tick(10)
+
+    def _handle_keydown_event(self, key: int) -> (bool, bool):
         """
         Handles the user pushing a button by adjusting state and redrawing
         the parts that changed.
@@ -62,19 +69,19 @@ class Maze:
         still_playing = (False, None)
 
         finished = False
-        if event.key == K_UP:
+        if key == K_UP:
             # Move the agent up
             finished = self._move(K_UP)
-        elif event.key == K_DOWN:
+        elif key == K_DOWN:
             # Move the agent down
             finished = self._move(K_DOWN)
-        elif event.key == K_LEFT:
+        elif key == K_LEFT:
             # Move the agent left
             finished = self._move(K_LEFT)
-        elif event.key == K_RIGHT:
+        elif key == K_RIGHT:
             # Move the agent right
             finished = self._move(K_RIGHT)
-        elif event.key == K_ESCAPE:
+        elif key == K_ESCAPE:
             # User wants to quit
             return wants_to_quit
 
@@ -159,7 +166,7 @@ class Maze:
             return False
         else:
             next_node = self._maze.get_node_up(current_agent_node)
-            self._handle_movement(current_agent_node, next_node)
+            return self._handle_movement(current_agent_node, next_node)
 
     def _move_down(self) -> bool:
         """
@@ -174,7 +181,7 @@ class Maze:
             return False
         else:
             next_node = self._maze.get_node_down(current_agent_node)
-            self._handle_movement(current_agent_node, next_node)
+            return self._handle_movement(current_agent_node, next_node)
 
     def _move_left(self) -> bool:
         """
@@ -189,7 +196,7 @@ class Maze:
             return False
         else:
             next_node = self._maze.get_node_left(current_agent_node)
-            self._handle_movement(current_agent_node, next_node)
+            return self._handle_movement(current_agent_node, next_node)
 
     def _move_right(self) -> bool:
         """
@@ -204,7 +211,7 @@ class Maze:
             return False
         else:
             next_node = self._maze.get_node_right(current_agent_node)
-            self._handle_movement(current_agent_node, next_node)
+            return self._handle_movement(current_agent_node, next_node)
 
     def _handle_movement(self, current_agent_node: mazegraph.MazeCell, next_node: mazegraph.MazeCell) -> bool:
         """

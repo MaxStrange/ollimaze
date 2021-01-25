@@ -31,6 +31,9 @@ class MazeCell:
         self._is_start = False
         self._is_finish = False
 
+    def __str__(self):
+        return f"({self.x}, {self.y}): Wall: {self.is_wall}; Player: {self.has_player}; Start: {self.is_start}; Finish: {self.is_finish}"
+
     @property
     def has_player(self):
         return self._has_player
