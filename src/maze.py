@@ -61,6 +61,7 @@ class Maze:
         finished_maze = (True, False)
         still_playing = (False, None)
 
+        finished = False
         if event.key == K_UP:
             # Move the agent up
             finished = self._move(K_UP)
@@ -139,9 +140,9 @@ class Maze:
         elif direction == K_DOWN:
             return self._move_down()
         elif direction == K_LEFT:
-            return self._move_down()
+            return self._move_left()
         elif direction == K_RIGHT:
-            return self._move_down()
+            return self._move_right()
         else:
             raise ValueError(f"This method is not equipped to handle the given key: {direction}")
 
