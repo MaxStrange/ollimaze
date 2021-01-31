@@ -6,6 +6,7 @@ import pygame
 import src.display as display      # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 import src.mazegraph as mazegraph  # pylint: disable=import-error
+import src.rmg as rmg              # pylint: disable=import-error
 
 from pygame.locals import (  # pylint: disable=no-member,no-name-in-module
     K_UP,
@@ -97,8 +98,7 @@ class Maze:
         """
         graph = mazegraph.MazeGraph(settings.nrows, settings.ncols)
 
-        # TODO: Create the graph
-        self._make_debug_graph(graph)
+        self._make_random_graph(graph)
 
         return graph
 
@@ -108,6 +108,13 @@ class Maze:
         """
         display.draw_maze(self._screen, self._maze, self._settings)
         pygame.display.flip()
+
+    def _make_random_graph(self, graph: mazegraph.MazeGraph):
+        """
+        Adjust all the nodes in the given graph so that we have a random maze
+        based on settings.
+        """
+        rmg.generate_random_maze(graph, self._settings)
 
     def _make_debug_graph(self, graph: mazegraph.MazeGraph):
         """

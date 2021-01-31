@@ -127,6 +127,12 @@ class MazeGraph:
             if node.y != nrows - 1:
                 node.down = _get_node(node.x, node.y + 1)
 
+    def node_is_edge(self, node: MazeCell) -> bool:
+        """
+        Returns whether a node is on the edge.
+        """
+        return node.x == 0 or node.x == self._ncols - 1 or node.y == 0 or node.y == self._nrows - 1
+
     def get_node(self, x: int, y: int) -> MazeCell:
         """
         Get the node from the given location. This is O(n), where n is the number of columns.
