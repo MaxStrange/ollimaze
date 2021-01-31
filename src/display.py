@@ -5,8 +5,8 @@ import pygame
 import src.mazegraph as mazegraph  # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 
-CELL_HEIGHT_PIXELS = 10
-CELL_WIDTH_PIXELS = 10
+CELL_HEIGHT_PIXELS = 10  # TODO: This should be some function of how many rows there are in the map
+CELL_WIDTH_PIXELS = 10   # TODO: This should be some function of how many cols there are in the map
 BACKGROUND_COLOR = (255, 255, 255)
 WALL_COLOR = (0, 0, 0)
 FINISH_COLOR = (0, 255, 0)

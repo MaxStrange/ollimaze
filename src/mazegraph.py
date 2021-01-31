@@ -206,3 +206,9 @@ class MazeGraph:
             return None
         else:
             return self.get_node(n.x + 1, n.y)
+
+    def get_all_path_nodes(self) -> [MazeCell]:
+        """
+        Returns a list of all path nodes.
+        """
+        return [node for node in self._nodes if not node.is_wall]

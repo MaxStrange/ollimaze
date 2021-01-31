@@ -11,12 +11,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--nrows", "-r", type=int, default=50, help="Number of rows in the maze.")
     parser.add_argument("--ncols", "-c", type=int, default=50, help="Number of columns in the maze.")
-    parser.add_argument("--n-random-walks", "-w", type=int, default=10, help="Number of random walks to create paths in the mazes.")
+    parser.add_argument("--n-random-walks", "-w", type=int, default=100, help="Number of random walks to create paths in the mazes.")
     parser.add_argument("--player-color", type=int, nargs=3, default=(0, 0, 255), help="R, G, and B values for the player rectangle.")
+    parser.add_argument("--alloted-time-ms", type=int, default=1000, help="We try to create a maze for this long before giving up and trying again.")
     args = parser.parse_args()
 
+    # Sanity check args
+    if args.nrows < 10 or args.ncols < 10:
+        print(f"Need at least 10 rows and at least 10 columns. Got {args.nrows} rows and {args.ncols} columns.")
+        exit(-1)
+
     # Make the settings out of the command line arguments
-    settings = setts.Settings(args.nrows, args.ncols, args.player_color, args.n_random_walks)
+    settings = setts.Settings(args.nrows, args.ncols, args.player_color, args.n_random_walks, args.alloted_time_ms)
 
     # Initialize PyGame
     pygame.init()  # pylint: disable=no-member

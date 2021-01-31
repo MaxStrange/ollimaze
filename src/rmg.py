@@ -1,20 +1,28 @@
 import random
 import src.settings as setts       # pylint: disable=import-error
 import src.mazegraph as mazegraph  # pylint: disable=import-error
+import time
 
 
 class BrownianAgent:
     """
     Agent that creates paths in the graph by way of Brownian motion (random walk).
     """
-    def __init__(self, graph: mazegraph.MazeGraph):
+    def __init__(self, graph: mazegraph.MazeGraph, alloted_time_ms: int):
         self._graph = graph
         self._current_node = graph._start_node
+        self._alloted_time = alloted_time_ms
 
-    def solve(self):
+    def solve(self) -> bool:
         """
         Random walk from start to finish, following usual rules.
+
+        Return False if it fails to solve it within reasonable time bounds.
         """
+        start_time_ms = time.time()
+
+        self._current_node = self._graph._start_node
+
         done = False
         while not done:
             # Take a random step, governed by some rules
@@ -23,7 +31,9 @@ class BrownianAgent:
             # Check if we successfully took a step. If not, we need to
             # move to a new location and start over
             if node is None:
-                self._backtrack()
+                ret = self._backtrack(start_time_ms)
+                if not ret:
+                    return False
             else:
                 node.is_wall = False
                 self._current_node = node
@@ -37,11 +47,26 @@ class BrownianAgent:
             elif self._current_node.right.is_finish:
                 done = True
 
+            if time.time() - start_time_ms >= self._alloted_time:
+                print("Ran out of time during solve.")
+                return False
+
+        return True
+
     def form_path(self):
         """
-        Random walk that ends... eventually.... TODO
+        Random walk that ends as soon as it can't take any more legal steps (i.e., no backtracking).
         """
-        pass  # TODO
+        self._current_node = random.choice(self._graph.get_all_path_nodes())
+
+        done = False
+        while not done:
+            node = self._step()
+            if node is None:
+                done = True
+            else:
+                node.is_wall = False
+                self._current_node = node
 
     def _step(self) -> mazegraph.MazeCell:
         """
@@ -69,20 +94,16 @@ class BrownianAgent:
 
         """
         if node is None:
-            print("Node is illegal: None")
             return False
         elif self._graph.node_is_edge(node):
-            print("Node is illegal: Edge")
             return False
         elif not node.is_wall:
-            print("Node is illegal: Not a wall")
             return False
 
         # Those are all the easy ones. Now let's check if the node is adjacent to the goal
         # node (in which case, it is legal)
         adjacent_nodes = [node.left, node.up, node.right, node.down]
         if any([n.is_finish for n in adjacent_nodes]):
-            print("Node is legal: Connected to finish")
             return True
 
         # Otherwise, if the node is adjacent to a path node, it is not legal (unless of course, that node is our current one)
@@ -95,10 +116,13 @@ class BrownianAgent:
         # Otherwise, it is legal
         return True
 
-    def _backtrack(self):
+    def _backtrack(self, start_time_ms: int) -> bool:
         """
         Set self._current_node to a node that has at least one legal node neighbor
         by moving along the path.
+
+        If we fail to finish this within the alloted time, we return False. Otherwise
+        we return True.
         """
         assert self._current_node is not None
         visited = set()
@@ -111,11 +135,19 @@ class BrownianAgent:
             possible_nodes = [node for node in possible_nodes if not node.is_wall]
             possible_nodes = [node for node in possible_nodes if node not in visited]
             if not possible_nodes:
-                self._debug_show_maze()
-                # assert possible_nodes, f"Possible nodes is empty ({possible_nodes}). Cannot backtrack."
+                # We've back tracked into a corner. Just jump to a random spot.
+                possible_nodes = self._graph.get_all_path_nodes()
+                visited = set()
+                # self._debug_show_maze()
 
             self._current_node = random.choice(possible_nodes)
             done = any([self._node_is_legal(n) for n in [self._current_node.left, self._current_node.up, self._current_node.right, self._current_node.down]])
+
+            if time.time() - start_time_ms >= self._alloted_time:
+                print("Ran out of time during backtrack.")
+                return False
+
+        return True
 
     def _debug_show_maze(self):
         # Dump everything
@@ -154,8 +186,13 @@ def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):
     end_node.is_finish = True
 
     # Make a random agent and have that agent do several walks through the maze, creating pathways as it goes
-    agent = BrownianAgent(graph)
-    agent.solve()
+    agent = BrownianAgent(graph, settings.alloted_graph_creation_time_ms)
+
+    # The agent can run out of time trying to solve a maze... because there is probably a bug in the algorithm,
+    # and since this is just a crappy throwaway program I wrote in a few hours, I can't really justify fixing it...
+    solved = agent.solve()
+    while not solved:
+        solved = agent.solve()
 
     for _ in range(settings.n_random_walks):
         agent.form_path()
