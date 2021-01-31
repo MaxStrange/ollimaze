@@ -96,7 +96,7 @@ class Maze:
         Creates a new MazeGraph data structure, with cells which connect
         to one another in a way that is based on the settings.
         """
-        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols)
+        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols, settings)
 
         self._make_random_graph(graph)
 

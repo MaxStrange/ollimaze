@@ -69,21 +69,28 @@ class BrownianAgent:
 
         """
         if node is None:
+            print("Node is illegal: None")
             return False
         elif self._graph.node_is_edge(node):
+            print("Node is illegal: Edge")
             return False
         elif not node.is_wall:
+            print("Node is illegal: Not a wall")
             return False
 
         # Those are all the easy ones. Now let's check if the node is adjacent to the goal
         # node (in which case, it is legal)
         adjacent_nodes = [node.left, node.up, node.right, node.down]
         if any([n.is_finish for n in adjacent_nodes]):
+            print("Node is legal: Connected to finish")
             return True
 
-        # Otherwise, if the node is adjacent to a path node, it is not legal
-        if any([not n.is_wall for n in adjacent_nodes]):
-            return False
+        # Otherwise, if the node is adjacent to a path node, it is not legal (unless of course, that node is our current one)
+        for n in adjacent_nodes:
+            path_nodes_adjacent_to_node = [n for n in adjacent_nodes if not n.is_wall]
+            for adj_n in path_nodes_adjacent_to_node:
+                if not adj_n.is_wall and not adj_n.is_same_as(self._current_node):
+                    return False
 
         # Otherwise, it is legal
         return True
@@ -103,10 +110,29 @@ class BrownianAgent:
             possible_nodes = [node for node in possible_nodes if node is not None]
             possible_nodes = [node for node in possible_nodes if not node.is_wall]
             possible_nodes = [node for node in possible_nodes if node not in visited]
-            assert possible_nodes, f"Possible nodes is empty ({possible_nodes}). Cannot backtrack."
-            self._current_node = random.choice(possible_nodes)
+            if not possible_nodes:
+                self._debug_show_maze()
+                # assert possible_nodes, f"Possible nodes is empty ({possible_nodes}). Cannot backtrack."
 
+            self._current_node = random.choice(possible_nodes)
             done = any([self._node_is_legal(n) for n in [self._current_node.left, self._current_node.up, self._current_node.right, self._current_node.down]])
+
+    def _debug_show_maze(self):
+        # Dump everything
+        print(f"Current Node: {self._current_node}")
+        print(f"Start Node:   {self._graph.get_start_node()}")
+        print(f"End Node:     {self._graph.get_end_node()}")
+
+        # Display everything
+        import pygame
+        import src.display as display  # pylint: disable=import-error
+        screen = display.make_screen(self._graph._settings)
+        display.draw_maze(screen, self._graph, self._graph._settings)
+        pygame.display.flip()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.locals.QUIT:  # pylint: disable=no-member
+                    exit()
 
 
 def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):

@@ -31,6 +31,9 @@ class MazeCell:
         self._is_start = False
         self._is_finish = False
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         return f"({self.x}, {self.y}): Wall: {self.is_wall}; Player: {self.has_player}; Start: {self.is_start}; Finish: {self.is_finish}"
 
@@ -64,6 +67,11 @@ class MazeCell:
         if value:
             self.graph._end_node = self
 
+    def is_same_as(self, other) -> bool:
+        """
+        Returns True if we are the same node as the other one.
+        """
+        return self.x == other.x and self.y == other.y
 
 class MazeGraph:
     """
@@ -78,7 +86,10 @@ class MazeGraph:
     It does not know, however, how to make a new maze for you. To do that, use the
     methods it provides to make it in whatever way you see fit.
     """
-    def __init__(self, nrows: int, ncols: int):
+    def __init__(self, nrows: int, ncols: int, settings):
+        # Settings
+        self._settings = settings
+
         # Special nodes that we keep track of
         self._start_node = None
         self._end_node = None
