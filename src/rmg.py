@@ -202,6 +202,8 @@ def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):
     while not solved:
         solved = agent.solve()
 
-    # TODO: You should max out at n_random_walks, but otherwise try to achieve a certain coverage instead.
-    for _ in range(settings.n_random_walks):
+    # Max out at n_random_walks, but otherwise try to achieve a certain coverage instead.
+    nwalks = 0
+    while nwalks < settings.n_random_walks and (len(graph.get_all_path_nodes()) / len(graph._nodes)) < settings.desired_coverage:
         agent.form_path(settings.n_random_walks)
+        nwalks += 1
