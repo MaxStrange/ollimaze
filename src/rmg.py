@@ -19,7 +19,7 @@ class BrownianAgent:
 
         Return False if it fails to solve it within reasonable time bounds.
         """
-        start_time_ms = time.time()
+        start_time_ms = time.time() * 1000
 
         self._current_node = self._graph._start_node
 
@@ -38,25 +38,26 @@ class BrownianAgent:
                 node.is_wall = False
                 self._current_node = node
 
-            if self._current_node.up.is_finish:
+            if self._current_node.up is not None and self._current_node.up.is_finish:
                 done = True
-            elif self._current_node.down.is_finish:
+            elif self._current_node.down is not None and self._current_node.down.is_finish:
                 done = True
-            elif self._current_node.left.is_finish:
+            elif self._current_node.left is not None and self._current_node.left.is_finish:
                 done = True
-            elif self._current_node.right.is_finish:
+            elif self._current_node.right is not None and self._current_node.right.is_finish:
                 done = True
 
-            if time.time() - start_time_ms >= self._alloted_time:
+            if (time.time() * 1000) - start_time_ms >= self._alloted_time:
                 print("Ran out of time during solve.")
                 return False
 
         return True
 
-    def form_path(self):
+    def form_path(self, n_total_walks: int):
         """
         Random walk that ends as soon as it can't take any more legal steps (i.e., no backtracking).
         """
+        start_time_ms = time.time() * 1000
         self._current_node = random.choice(self._graph.get_all_path_nodes())
 
         done = False
@@ -67,6 +68,9 @@ class BrownianAgent:
             else:
                 node.is_wall = False
                 self._current_node = node
+
+            if (time.time() * 1000) - start_time_ms >= self._alloted_time / n_total_walks:
+                return
 
     def _step(self) -> mazegraph.MazeCell:
         """
@@ -96,7 +100,11 @@ class BrownianAgent:
         if node is None:
             return False
         elif self._graph.node_is_edge(node):
-            return False
+            # This is actually legal if and only if the current node is the start node and the start node is in a corner
+            if self._current_node.is_start and self._current_node.is_corner:
+                return True
+            else:
+                return False
         elif not node.is_wall:
             return False
 
@@ -143,7 +151,7 @@ class BrownianAgent:
             self._current_node = random.choice(possible_nodes)
             done = any([self._node_is_legal(n) for n in [self._current_node.left, self._current_node.up, self._current_node.right, self._current_node.down]])
 
-            if time.time() - start_time_ms >= self._alloted_time:
+            if (time.time() * 1000) - start_time_ms >= self._alloted_time:
                 print("Ran out of time during backtrack.")
                 return False
 
@@ -180,7 +188,7 @@ def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):
 
     # Make the finish node
     end_node = graph.get_node(int(random.uniform(0, settings.ncols - 1)), int(random.uniform(0, settings.nrows - 1)))
-    while end_node.x == start_node.x and end_node.y == start_node.y:
+    while (end_node.x == start_node.x and end_node.y == start_node.y) or end_node.is_corner:
         end_node = graph.get_node(int(random.uniform(0, settings.ncols - 1)), int(random.uniform(0, settings.nrows - 1)))
     end_node.is_wall = False
     end_node.is_finish = True
@@ -195,4 +203,4 @@ def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):
         solved = agent.solve()
 
     for _ in range(settings.n_random_walks):
-        agent.form_path()
+        agent.form_path(settings.n_random_walks)

@@ -48,6 +48,14 @@ class MazeCell:
             self.graph._player_node = self
 
     @property
+    def is_corner(self):
+        top_left = (self.x == 0 and self.y == 0)
+        bottom_left = (self.x == 0 and self.y == self.graph._nrows - 1)
+        top_right = (self.x == self.graph._ncols - 1 and self.y == 0)
+        bottom_right = (self.x == self.graph._ncols - 1 and self.y == self.graph._nrows - 1)
+        return  top_left or bottom_left or top_right or bottom_right
+
+    @property
     def is_start(self):
         return self._is_start
 
@@ -72,6 +80,7 @@ class MazeCell:
         Returns True if we are the same node as the other one.
         """
         return self.x == other.x and self.y == other.y
+
 
 class MazeGraph:
     """
@@ -117,6 +126,12 @@ class MazeGraph:
                 self._nodes_by_row[y].append(node)
                 self._nodes_by_column[x].append(node)
         assert len(self._nodes) == nrows * ncols, f"There should be {nrows * ncols}, but there are {len(self._nodes)}"
+        assert len(self._nodes_by_column) == ncols, f"There should be {ncols} columns, but there are {len(self._nodes_by_column)} columns."
+        assert len(self._nodes_by_row) == nrows, f"There should be {nrows} rows, but there are {len(self._nodes_by_row)} rows."
+        for i, row in enumerate(self._nodes_by_row):
+            assert len(row) > 0, f"There are 0 nodes in row {i}."
+        for i, col in enumerate(self._nodes_by_column):
+            assert len(col) > 0, f"There are 0 nodes in column {i}"
 
         def _get_node(x: int, y: int):
             for n in self._nodes_by_column[x]:

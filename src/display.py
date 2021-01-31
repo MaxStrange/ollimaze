@@ -5,8 +5,11 @@ import pygame
 import src.mazegraph as mazegraph  # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 
-CELL_HEIGHT_PIXELS = 10  # TODO: This should be some function of how many rows there are in the map
-CELL_WIDTH_PIXELS = 10   # TODO: This should be some function of how many cols there are in the map
+BASE_CELL_HEIGHT = 10
+BASE_CELL_WIDTH = 10
+
+CELL_HEIGHT_PIXELS = BASE_CELL_HEIGHT
+CELL_WIDTH_PIXELS = BASE_CELL_WIDTH
 BACKGROUND_COLOR = (255, 255, 255)
 WALL_COLOR = (0, 0, 0)
 FINISH_COLOR = (0, 255, 0)
@@ -16,13 +19,19 @@ def make_screen(settings: setts.Settings):
     """
     Create the PyGame display for the game.
     """
-    screen = pygame.display.set_mode([settings.nrows * CELL_HEIGHT_PIXELS, settings.ncols * CELL_WIDTH_PIXELS])
+    CELL_HEIGHT_PIXELS = max(10, int(500 * (1 / settings.nrows)))
+    CELL_WIDTH_PIXELS  = max(10, int(500 * (1 / settings.ncols)))
+
+    screen = pygame.display.set_mode([settings.ncols * CELL_WIDTH_PIXELS, settings.nrows * CELL_HEIGHT_PIXELS])
     return screen
 
 def draw_maze(screen, maze: mazegraph.MazeGraph, settings: setts.Settings):
     """
     Draws the whole maze.
     """
+    CELL_HEIGHT_PIXELS = max(10, int(500 * (1 / settings.nrows)))
+    CELL_WIDTH_PIXELS  = max(10, int(500 * (1 / settings.ncols)))
+
     screen.fill(BACKGROUND_COLOR)
 
     for row in maze._nodes_by_row:

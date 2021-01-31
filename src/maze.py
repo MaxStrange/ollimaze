@@ -143,6 +143,14 @@ class Maze:
             node = graph.get_node(middle_column, r)
             node.is_wall = False
 
+        # Uncomment below if you want to draw across the whole map
+        #for c in range(0, self._settings.ncols):
+        #    node = graph.get_node(c, middle_row)
+        #    node.is_wall = False
+        #for r in range(0, self._settings.nrows):
+        #    node = graph.get_node(middle_column, r)
+        #    node.is_wall = False
+
     def _move(self, direction) -> bool:
         """
         Moves the agent in the given direction, if possible.
