@@ -4,6 +4,13 @@ import src.mazegraph as mazegraph  # pylint: disable=import-error
 import time
 
 
+def _get_time_ms():
+    """
+    Returns the current time in ms.
+    """
+    return time.time() * 1000
+
+
 class BrownianAgent:
     """
     Agent that creates paths in the graph by way of Brownian motion (random walk).
@@ -19,10 +26,11 @@ class BrownianAgent:
 
         Return False if it fails to solve it within reasonable time bounds.
         """
-        start_time_ms = time.time() * 1000
-
+        # Start from the start node
         self._current_node = self._graph._start_node
 
+        # Only try for a certain amount of time before giving up
+        start_time_ms = _get_time_ms()
         done = False
         while not done:
             # Take a random step, governed by some rules
@@ -186,7 +194,7 @@ def generate_random_maze(graph: mazegraph.MazeGraph, settings: setts.Settings):
     start_node.is_start = True
     start_node.has_player = True
 
-    # Make the finish node
+    # Make the finish node (make sure that the end_node is not the same as the start_node)
     end_node = graph.get_node(int(random.uniform(0, settings.ncols - 1)), int(random.uniform(0, settings.nrows - 1)))
     while (end_node.x == start_node.x and end_node.y == start_node.y) or end_node.is_corner:
         end_node = graph.get_node(int(random.uniform(0, settings.ncols - 1)), int(random.uniform(0, settings.nrows - 1)))

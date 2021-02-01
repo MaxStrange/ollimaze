@@ -77,14 +77,14 @@ class MazeCell:
 
     def is_same_as(self, other) -> bool:
         """
-        Returns True if we are the same node as the other one.
+        Returns True if we are the same node as the other one (logically, not by memory location).
         """
         return self.x == other.x and self.y == other.y
 
 
 class MazeGraph:
     """
-    A MazeGraph is a graph data structure which can be used to represent a 2D maze.
+    A MazeGraph is a graph data structure which can be used to represent a rectangular 2D maze.
 
     Each node is a location (or "cell") in the maze, and is connected to up to four other
     nodes via edges (up, down, right, left).
@@ -95,7 +95,7 @@ class MazeGraph:
     It does not know, however, how to make a new maze for you. To do that, use the
     methods it provides to make it in whatever way you see fit.
     """
-    def __init__(self, nrows: int, ncols: int, settings):
+    def __init__(self, settings):
         # Settings
         self._settings = settings
 
@@ -104,35 +104,38 @@ class MazeGraph:
         self._end_node = None
         self._player_node = None
 
-        # Nrows and ncols
-        self._nrows = nrows
-        self._ncols = ncols
+        # Nrows and ncols (convenience so we don't have to keep going through the settings object)
+        self._nrows = settings.nrows
+        self._ncols = settings.ncols
 
         # A list of every node in the graph
         self._nodes = []
 
         # A list of lists. List c contains references to all the nodes that are in column c.
-        self._nodes_by_column = [[] for _ in range(ncols)]
+        self._nodes_by_column = [[] for _ in range(self._ncols)]
 
         # A list of lists. List r contains references to all the nodes that are in row r.
-        self._nodes_by_row = [[] for _ in range(nrows)]
+        self._nodes_by_row = [[] for _ in range(self._nrows)]
 
         # Go through and create a single node for each cell
-        for y in range(0, nrows):
-            for x in range(0, ncols):
+        for y in range(0, self._nrows):
+            for x in range(0, self._ncols):
                 node = MazeCell(x, y, self)
                 self._nodes.append(node)
 
                 self._nodes_by_row[y].append(node)
                 self._nodes_by_column[x].append(node)
-        assert len(self._nodes) == nrows * ncols, f"There should be {nrows * ncols}, but there are {len(self._nodes)}"
-        assert len(self._nodes_by_column) == ncols, f"There should be {ncols} columns, but there are {len(self._nodes_by_column)} columns."
-        assert len(self._nodes_by_row) == nrows, f"There should be {nrows} rows, but there are {len(self._nodes_by_row)} rows."
+
+        # Sanity checks
+        assert len(self._nodes) == self._nrows * self._ncols, f"There should be {self._nrows * self._ncols}, but there are {len(self._nodes)}"
+        assert len(self._nodes_by_column) == self._ncols, f"There should be {self._ncols} columns, but there are {len(self._nodes_by_column)} columns."
+        assert len(self._nodes_by_row) == self._nrows, f"There should be {self._nrows} rows, but there are {len(self._nodes_by_row)} rows."
         for i, row in enumerate(self._nodes_by_row):
             assert len(row) > 0, f"There are 0 nodes in row {i}."
         for i, col in enumerate(self._nodes_by_column):
             assert len(col) > 0, f"There are 0 nodes in column {i}"
 
+        # Convenience function for setting up all the node relations
         def _get_node(x: int, y: int):
             for n in self._nodes_by_column[x]:
                 if n.y == y:
@@ -144,13 +147,13 @@ class MazeGraph:
             if node.x != 0:
                 node.left = _get_node(node.x - 1, node.y)
 
-            if node.x != ncols - 1:
+            if node.x != self._ncols - 1:
                 node.right = _get_node(node.x + 1, node.y)
 
             if node.y != 0:
                 node.up = _get_node(node.x, node.y - 1)
 
-            if node.y != nrows - 1:
+            if node.y != self._nrows - 1:
                 node.down = _get_node(node.x, node.y + 1)
 
     def node_is_edge(self, node: MazeCell) -> bool:

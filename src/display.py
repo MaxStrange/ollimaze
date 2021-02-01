@@ -5,13 +5,18 @@ import pygame
 import src.mazegraph as mazegraph  # pylint: disable=import-error
 import src.settings as setts       # pylint: disable=import-error
 
+# This is the base height of a maze cell
 BASE_CELL_HEIGHT = 10
+
+# This is the base widht of a maze cell
 BASE_CELL_WIDTH = 10
 
+# This is the real height of each cell. It gets adjusted based on how many rows there are
 CELL_HEIGHT_PIXELS = BASE_CELL_HEIGHT
+
+ # This is the real width of each cell. It gets adjusted based on how many columns there are
 CELL_WIDTH_PIXELS = BASE_CELL_WIDTH
-BACKGROUND_COLOR = (255, 255, 255)
-WALL_COLOR = (0, 0, 0)
+
 FINISH_COLOR = (0, 255, 0)
 
 
@@ -32,18 +37,18 @@ def draw_maze(screen, maze: mazegraph.MazeGraph, settings: setts.Settings):
     CELL_HEIGHT_PIXELS = max(10, int(500 * (1 / settings.nrows)))
     CELL_WIDTH_PIXELS  = max(10, int(500 * (1 / settings.ncols)))
 
-    screen.fill(BACKGROUND_COLOR)
+    screen.fill(settings.path_color)
 
     for row in maze._nodes_by_row:
         # Draw this row
         for node in row:
             if node.is_finish:
                 surface = pygame.Surface((CELL_WIDTH_PIXELS, CELL_HEIGHT_PIXELS))
-                surface.fill(FINISH_COLOR)
+                surface.fill(settings.goal_color)
                 screen.blit(surface, (CELL_WIDTH_PIXELS * node.x, CELL_HEIGHT_PIXELS * node.y))
             elif node.is_wall:
                 surface = pygame.Surface((CELL_WIDTH_PIXELS, CELL_HEIGHT_PIXELS))
-                surface.fill(WALL_COLOR)
+                surface.fill(settings.wall_color)
                 screen.blit(surface, (CELL_WIDTH_PIXELS * node.x, CELL_HEIGHT_PIXELS * node.y))
 
             if node.has_player:

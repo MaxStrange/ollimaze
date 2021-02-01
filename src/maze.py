@@ -47,7 +47,7 @@ class Maze:
                 return False
 
             # Go at a reasonable FPS
-            self._clock.tick(8)
+            self._clock.tick(self._settings.fps)
 
             # Unblock movement now that a frame has elapsed (we only want to be able to move once per frame)
             self._moved_this_frame = False
@@ -213,21 +213,8 @@ class Maze:
         else:
             current_agent_node.has_player = False
             next_node.has_player = True
-            # TODO: Only redraw the current_agent_node cell and next_node cell
             self._draw()
             return next_node.is_finish
-
-
-    def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
-        """
-        Creates a new MazeGraph data structure, with cells which connect
-        to one another in a way that is based on the settings.
-        """
-        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols, settings)
-
-        self._make_random_graph(graph)
-
-        return graph
 
     def _draw(self):
         """
@@ -235,6 +222,16 @@ class Maze:
         """
         display.draw_maze(self._screen, self._maze, self._settings)
         pygame.display.flip()
+
+    def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
+        """
+        Creates a new MazeGraph data structure, with cells which connect
+        to one another in a way that is based on the settings.
+        """
+        graph = mazegraph.MazeGraph(settings)
+        self._make_random_graph(graph)
+
+        return graph
 
     def _make_random_graph(self, graph: mazegraph.MazeGraph):
         """
