@@ -28,6 +28,7 @@ class Maze:
         self._maze = self._create_new_maze(self._settings)
         self._screen = display.make_screen(self._settings)
         self._clock = pygame.time.Clock()
+        self._moved_this_frame = False
 
     def play(self) -> bool:
         """
@@ -37,23 +38,56 @@ class Maze:
         """
         self._draw()
 
-        # Allow the player to control the agent, redrawing only the cells that change, as we go
+        # Allow the player to control the agent, redrawing as we go
         while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    return True
-
-            keys_pressed = pygame.key.get_pressed()
-            for key in [K_DOWN, K_LEFT, K_RIGHT, K_UP, K_ESCAPE]:
-                if keys_pressed[key]:
-                    done, should_quit = self._handle_keydown_event(key)
-                    if done and should_quit:
-                        return True
-                    elif done:
-                        return False
+            should_quit, quit_all_the_way_out = self._handle_events()
+            if should_quit and quit_all_the_way_out:
+                return True
+            elif should_quit:
+                return False
 
             # Go at a reasonable FPS
-            self._clock.tick(10)
+            self._clock.tick(8)
+
+            # Unblock movement now that a frame has elapsed (we only want to be able to move once per frame)
+            self._moved_this_frame = False
+
+    def _handle_events(self) -> (bool, bool):
+        """
+        Handles all events from PyGame.
+
+        Returns (are we done?, quit all the way out?).
+        """
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                # Handle whether we should quit
+                return True, True
+            elif event.type == KEYDOWN and not self._moved_this_frame:
+                # If the user pushed a button this frame and the user has not moved this frame, let's move
+                done, should_quit = self._handle_keydown_event(event.key)
+                self._moved_this_frame = True
+                if done and should_quit:
+                    return True, True
+                elif done:
+                    return True, False
+
+
+        # Now check all the keys that are pushed down (i.e., buttons that were not pushed this frame but are nevertheless pushed down)
+        # But only do so if we haven't already moved this frame.
+        if self._moved_this_frame:
+            return False, None
+
+        keys_pressed = pygame.key.get_pressed()
+        for key in [K_DOWN, K_LEFT, K_RIGHT, K_UP, K_ESCAPE]:
+            if keys_pressed[key]:
+                done, should_quit = self._handle_keydown_event(key)
+                self._moved_this_frame = True
+                if done and should_quit:
+                    return True, True
+                elif done:
+                    return True, False
+
+        return False, None
 
     def _handle_keydown_event(self, key: int) -> (bool, bool):
         """
@@ -64,6 +98,7 @@ class Maze:
         - (True, True) -> User wants to quit
         - (True, False) -> User has finished this maze
         - (False, *) -> User is not done yet
+
         """
         wants_to_quit = (True, True)
         finished_maze = (True, False)
@@ -90,66 +125,6 @@ class Maze:
             return finished_maze
         else:
             return still_playing
-
-    def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
-        """
-        Creates a new MazeGraph data structure, with cells which connect
-        to one another in a way that is based on the settings.
-        """
-        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols, settings)
-
-        self._make_random_graph(graph)
-
-        return graph
-
-    def _draw(self):
-        """
-        Draw the maze in full.
-        """
-        display.draw_maze(self._screen, self._maze, self._settings)
-        pygame.display.flip()
-
-    def _make_random_graph(self, graph: mazegraph.MazeGraph):
-        """
-        Adjust all the nodes in the given graph so that we have a random maze
-        based on settings.
-        """
-        rmg.generate_random_maze(graph, self._settings)
-
-    def _make_debug_graph(self, graph: mazegraph.MazeGraph):
-        """
-        Adjust all the nodes in the given graph so that we have a simple path from
-        start to finish.
-        """
-        middle_column = int(self._settings.ncols * 0.5)
-        middle_row = int(self._settings.nrows * 0.5)
-
-        # Set up the start cell
-        start = graph.get_node(0, middle_row)
-        start.is_start = True
-        start.has_player = True
-        start.is_wall = False
-
-        # Set up the end cell (the goal)
-        end = graph.get_node(middle_column, 0)
-        end.is_finish = True
-        end.is_wall = False
-
-        for c in range(0, middle_column + 1):
-            node = graph.get_node(c, middle_row)
-            node.is_wall = False
-
-        for r in range(0, middle_row):
-            node = graph.get_node(middle_column, r)
-            node.is_wall = False
-
-        # Uncomment below if you want to draw across the whole map
-        #for c in range(0, self._settings.ncols):
-        #    node = graph.get_node(c, middle_row)
-        #    node.is_wall = False
-        #for r in range(0, self._settings.nrows):
-        #    node = graph.get_node(middle_column, r)
-        #    node.is_wall = False
 
     def _move(self, direction) -> bool:
         """
@@ -241,3 +216,64 @@ class Maze:
             # TODO: Only redraw the current_agent_node cell and next_node cell
             self._draw()
             return next_node.is_finish
+
+
+    def _create_new_maze(self, settings: setts.Settings) -> mazegraph.MazeGraph:
+        """
+        Creates a new MazeGraph data structure, with cells which connect
+        to one another in a way that is based on the settings.
+        """
+        graph = mazegraph.MazeGraph(settings.nrows, settings.ncols, settings)
+
+        self._make_random_graph(graph)
+
+        return graph
+
+    def _draw(self):
+        """
+        Draw the maze in full.
+        """
+        display.draw_maze(self._screen, self._maze, self._settings)
+        pygame.display.flip()
+
+    def _make_random_graph(self, graph: mazegraph.MazeGraph):
+        """
+        Adjust all the nodes in the given graph so that we have a random maze
+        based on settings.
+        """
+        rmg.generate_random_maze(graph, self._settings)
+
+    def _make_debug_graph(self, graph: mazegraph.MazeGraph):
+        """
+        Adjust all the nodes in the given graph so that we have a simple path from
+        start to finish.
+        """
+        middle_column = int(self._settings.ncols * 0.5)
+        middle_row = int(self._settings.nrows * 0.5)
+
+        # Set up the start cell
+        start = graph.get_node(0, middle_row)
+        start.is_start = True
+        start.has_player = True
+        start.is_wall = False
+
+        # Set up the end cell (the goal)
+        end = graph.get_node(middle_column, 0)
+        end.is_finish = True
+        end.is_wall = False
+
+        for c in range(0, middle_column + 1):
+            node = graph.get_node(c, middle_row)
+            node.is_wall = False
+
+        for r in range(0, middle_row):
+            node = graph.get_node(middle_column, r)
+            node.is_wall = False
+
+        # Uncomment below if you want to draw across the whole map
+        #for c in range(0, self._settings.ncols):
+        #    node = graph.get_node(c, middle_row)
+        #    node.is_wall = False
+        #for r in range(0, self._settings.nrows):
+        #    node = graph.get_node(middle_column, r)
+        #    node.is_wall = False
