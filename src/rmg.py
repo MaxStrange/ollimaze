@@ -31,13 +31,12 @@ class BrownianAgent:
 
         # Only try for a certain amount of time before giving up
         start_time_ms = _get_time_ms()
-        done = False
-        while not done:
+        while _get_time_ms() - start_time_ms < self._alloted_time:
             # Take a random step, governed by some rules
             node = self._step()
 
             # Check if we successfully took a step. If not, we need to
-            # move to a new location and start over
+            # move to a new location
             if node is None:
                 ret = self._backtrack(start_time_ms)
                 if not ret:
@@ -46,39 +45,32 @@ class BrownianAgent:
                 node.is_wall = False
                 self._current_node = node
 
+            # If we have stepped to a node that is adjacent to the goal, we are done
             if self._current_node.up is not None and self._current_node.up.is_finish:
-                done = True
+                return True
             elif self._current_node.down is not None and self._current_node.down.is_finish:
-                done = True
+                return True
             elif self._current_node.left is not None and self._current_node.left.is_finish:
-                done = True
+                return True
             elif self._current_node.right is not None and self._current_node.right.is_finish:
-                done = True
+                return True
 
-            if (time.time() * 1000) - start_time_ms >= self._alloted_time:
-                print("Ran out of time during solve.")
-                return False
-
-        return True
+        return False
 
     def form_path(self, n_total_walks: int):
         """
         Random walk that ends as soon as it can't take any more legal steps (i.e., no backtracking).
         """
-        start_time_ms = time.time() * 1000
+        start_time_ms = _get_time_ms()
         self._current_node = random.choice(self._graph.get_all_path_nodes())
 
-        done = False
-        while not done:
+        while _get_time_ms() - start_time_ms < (self._alloted_time / n_total_walks):
             node = self._step()
             if node is None:
-                done = True
+                return
             else:
                 node.is_wall = False
                 self._current_node = node
-
-            if (time.time() * 1000) - start_time_ms >= self._alloted_time / n_total_walks:
-                return
 
     def _step(self) -> mazegraph.MazeCell:
         """
@@ -154,13 +146,12 @@ class BrownianAgent:
                 # We've back tracked into a corner. Just jump to a random spot.
                 possible_nodes = self._graph.get_all_path_nodes()
                 visited = set()
-                # self._debug_show_maze()
 
             self._current_node = random.choice(possible_nodes)
             done = any([self._node_is_legal(n) for n in [self._current_node.left, self._current_node.up, self._current_node.right, self._current_node.down]])
 
-            if (time.time() * 1000) - start_time_ms >= self._alloted_time:
-                print("Ran out of time during backtrack.")
+            if (_get_time_ms() - start_time_ms) >= self._alloted_time:
+                print("Ran out of time during backtrack")
                 return False
 
         return True
